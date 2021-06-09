@@ -12,7 +12,7 @@ User.init({
     primaryKey: true,
     autoIncrement: true
   },
-  unsername: {
+  username: {
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -30,6 +30,10 @@ User.init({
     beforeCreate: async (newUserData) => {
       newUserData.password = await bcrypt.hash(req.body.password, 10);
       return newUserData;
+    },
+    beforeUpdate: async (userData) => {
+      userData.password = await bcrypt.hash(req.body.password, 10);
+      return userData;
     }
   }
 });
