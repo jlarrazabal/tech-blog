@@ -11,7 +11,7 @@ const app = express();
 
 const sess = {
   secret: "dogs are great pets",
-  cookie: {maxAge: 10000},
+  cookie: {maxAge: 1200000},
   resave: false,
   saveUninitialized: false,
   store: new SequelizeStore({

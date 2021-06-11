@@ -20,25 +20,29 @@ router.post("/signup", async (req, res) => {
         username: req.body.username,
         password: req.body.password
       });
-      req.session.save(async () => {
-        const postsData = await Post.findAll({
-          include: [{
-            model: User,
-            attributes: [
-              "id",
-              "username"
-            ]
-          }]
-        });
-        req.session.user_id = newUser.id;
-        req.session.loggedIn = true;
-        console.log(newUser);
-        if(!postsData.length) {
-          res.render("notFound", {loggedIn: req.session.loggedIn, user_id: req.session.user_id});
+      req.session.save( async (err) => {
+        if(err) {
+          console.log(err);
         } else {
-          const posts = postsData.map(post => post.get({plain:true}));
-          console.log(posts);
-          res.render("home", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
+          req.session.user_id = newUser.id;
+          req.session.loggedIn = true;
+          const postsData = await Post.findAll({
+            include: [{
+              model: User,
+              attributes: [
+                "id",
+                "username"
+              ]
+            }]
+          });
+          // console.log(newUser);
+          if(!postsData.length) {
+            res.render("notFound", {loggedIn: req.session.loggedIn, user_id: req.session.user_id});
+          } else {
+            const posts = postsData.map(post => post.get({plain:true}));
+            console.log(posts);
+            res.render("home", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
+          }
         }
       });
     } else {
@@ -53,11 +57,6 @@ router.post("/signup", async (req, res) => {
 
 //User Login
 router.post("/login", async (req, res) => {
-  
-});
-
-//User Logout
-router.get("/logout", async (req, res) => {
   try {
     const postsData = await Post.findAll({
       include: [{
@@ -68,28 +67,65 @@ router.get("/logout", async (req, res) => {
         ]
       }]
     });
-    if(!postsData.length) {
-      if (req.session.loggedIn) {
-        req.session.destroy(() => {
-          res.render("notFound");
-        });
-      } else {
-        res.render("notFound");
-      }
+    const userData = await User.findOne({where: {username: req.body.username}});
+    if(!userData) {
+      res.render("noUser");
     } else {
-      const posts = postsData.map(post => post.get({plain:true}));
-      console.log(posts);
-      if (req.session.loggedIn) {
-        req.session.destroy(() => {
-          res.render("home", {posts});
-        });
-      } else {
-        res.render("home", {posts});
+      const validPassword = await userData.checkPassword(req.body.password);
+
+      if(!validPassword) {
+        res.render("noUser");
       }
+      req.session.save( async (err) => {
+        if(err) {
+          console.log(err);
+        } else {
+          req.session.user_id = userData.id;
+          req.session.loggedIn = true;
+          const postsData = await Post.findAll({
+            include: [{
+              model: User,
+              attributes: [
+                "id",
+                "username"
+              ]
+            }]
+          });
+          if(!postsData.length) {
+            res.render("notFound", {loggedIn: req.session.loggedIn, user_id: req.session.user_id});
+          } else {
+            const posts = postsData.map(post => post.get({plain:true}));
+            console.log(posts);
+            res.render("home", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
+          }
+        }
+      });
     }
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
+});
+
+//User Logout - Troubleshoot Issues
+router.get("/logout", async (req, res) => {
+  try {
+    req.session.destroy((err) => {
+      if(err) {
+        res.status(500).json({message: "Server error"});
+      } else {
+        res.redirect("/");
+      }
+    });
   } catch(err){
     res.status(500).json(err);
   }
+});
+
+//Create Post
+router.post("/new-post", async (req, res) => {
+
 });
 
 module.exports = router;
