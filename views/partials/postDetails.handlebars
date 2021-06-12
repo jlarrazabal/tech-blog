@@ -1,9 +1,9 @@
 <section class="card">
   <div class="card-header">
     <a href="/post/{{id}}"><h3>{{post_title}}</h3></a>
-    <p>Posted by {{username}} on {{post_date}}</p>
   </div>
   <div class="card-body">
-    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+    <p class="card-text">{{post_content}}</p>
+    <p>Posted by {{user.username}} on {{post_date}}</p>
   </div>
 </section>

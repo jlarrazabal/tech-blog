@@ -1,5 +1,9 @@
 const router = require("express").Router();
-const {User, Post, Comment} = require("../models");
+const {
+  User,
+  Post,
+  Comment
+} = require("../models");
 const auth = require("../utils/auth");
 
 //Signup and Create User
@@ -14,14 +18,18 @@ router.post("/signup", async (req, res) => {
         ]
       }]
     });
-    const lookUsername = await User.findOne({where: {username: req.body.username}});
-    if(!lookUsername) {
+    const lookUsername = await User.findOne({
+      where: {
+        username: req.body.username
+      }
+    });
+    if (!lookUsername) {
       const newUser = await User.create({
         username: req.body.username,
         password: req.body.password
       });
-      req.session.save( async (err) => {
-        if(err) {
+      req.session.save(async (err) => {
+        if (err) {
           console.log(err);
         } else {
           req.session.user_id = newUser.id;
@@ -36,12 +44,23 @@ router.post("/signup", async (req, res) => {
             }]
           });
           // console.log(newUser);
-          if(!postsData.length) {
-            res.render("notFound", {loggedIn: req.session.loggedIn, user_id: req.session.user_id});
+          if (!postsData.length) {
+            res.render("notFound", {
+              loggedIn: req.session.loggedIn,
+              user_id: req.session.user_id
+            });
           } else {
-            const posts = postsData.map(post => post.get({plain:true}));
+            const posts = postsData.map(post => post.get({
+              plain: true
+            }));
             console.log(posts);
-            res.render("home", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
+            res.render("home", {
+              loggedIn: req.session.loggedIn,
+              user_id: req.session.user_id,
+              posts: {
+                posts
+              }
+            });
           }
         }
       });
@@ -67,17 +86,21 @@ router.post("/login", async (req, res) => {
         ]
       }]
     });
-    const userData = await User.findOne({where: {username: req.body.username}});
-    if(!userData) {
+    const userData = await User.findOne({
+      where: {
+        username: req.body.username
+      }
+    });
+    if (!userData) {
       res.render("noUser");
     } else {
       const validPassword = await userData.checkPassword(req.body.password);
 
-      if(!validPassword) {
+      if (!validPassword) {
         res.render("noUser");
       }
-      req.session.save( async (err) => {
-        if(err) {
+      req.session.save(async (err) => {
+        if (err) {
           console.log(err);
         } else {
           req.session.user_id = userData.id;
@@ -91,12 +114,23 @@ router.post("/login", async (req, res) => {
               ]
             }]
           });
-          if(!postsData.length) {
-            res.render("notFound", {loggedIn: req.session.loggedIn, user_id: req.session.user_id});
+          if (!postsData.length) {
+            res.render("notFound", {
+              loggedIn: req.session.loggedIn,
+              user_id: req.session.user_id
+            });
           } else {
-            const posts = postsData.map(post => post.get({plain:true}));
+            const posts = postsData.map(post => post.get({
+              plain: true
+            }));
             console.log(posts);
-            res.render("home", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
+            res.render("home", {
+              loggedIn: req.session.loggedIn,
+              user_id: req.session.user_id,
+              posts: {
+                posts
+              }
+            });
           }
         }
       });
@@ -109,23 +143,30 @@ router.post("/login", async (req, res) => {
 });
 
 //User Logout - Troubleshoot Issues
-router.get("/logout", async (req, res) => {
-  try {
-    req.session.destroy((err) => {
-      if(err) {
-        res.status(500).json({message: "Server error"});
-      } else {
-        res.redirect("/");
-      }
+router.post("/logout", (req, res) => {
+  if (req.session.loggedIn) {
+    req.session.destroy(() => {
+      res.redirect("/");
     });
-  } catch(err){
-    res.status(500).json(err);
+  } else {
+    res.redirect("/");
   }
 });
 
 //Create Post
-router.post("/new-post", async (req, res) => {
-
+router.post("/new-post", auth ,async (req, res) => {
+  try {
+    let newDate = new Date();
+    const newPost = await Post.create({
+      post_title: req.body.postTitle,
+      post_content: req.body.postContent,
+      post_date: newDate,
+      user_id: req.session.user_id
+    });
+    res.render("dashboard", {loggedIn: req.session.loggedIn, user_id: req.session.user_id});
+  } catch(err) {
+    res.status(500).json(err);
+  }
 });
 
 module.exports = router;

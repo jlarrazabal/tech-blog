@@ -31,17 +31,9 @@ router.get("/", async (req, res) => {
       }));
       console.log(posts);
       if (req.session.loggedIn) {
-        res.render("home", {
-          loggedIn: req.session.loggedIn,
-          user_id: req.session.user_id,
-          posts: {
-            posts
-          }
-        });
+        res.render("home",{loggedIn:req.session.loggedIn, user_id:req.session.user_id, posts:{posts}});
       } else {
-        res.render("home", {
-          posts
-        });
+        res.render("home", { posts: {posts}});
       }
     }
   } catch (err) {
@@ -73,7 +65,6 @@ router.get("/dashboard", auth, async (req, res) => {
         res.render("dashboard");
       }
     } else {
-      console.log(req.session.loggedIn);
       const posts = postsData.map(post => post.get({
         plain: true
       }));
@@ -87,9 +78,7 @@ router.get("/dashboard", auth, async (req, res) => {
           }
         });
       } else {
-        res.render("dashboard", {
-          posts
-        });
+        res.render("dashboard", {posts: {posts}});
       }
     }
   } catch (err) {
@@ -110,6 +99,42 @@ router.get("/login", async (req, res) => {
 
 router.get("/signup", async (req, res) => {
   res.render("signup");
+});
+
+router.get("/post/:id", async (req, res) => { //Work in progress
+  try{
+    const postData = await Post.findAll({
+      include: [{
+        model: User,
+        attributes: [
+          "id",
+          "username"
+        ]
+      }],
+      where: {
+        id: req.params.id
+      }
+    });
+    // res.send(postData);
+    if(!postData) {
+      if(req.session.loggedIn) {
+        res.render("notFound", {loggedIn: req.session.loggedIn, user_id: req.session.user_id});
+      } else {
+        res.render("notFound")
+      }
+    } else {
+      const posts = postData.map(post => post.get({
+        plain: true
+      }));
+      if(req.session.loggedIn) {
+        res.render("post", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
+      } else {
+        res.render("post", {posts});
+      }
+    }
+  } catch(err) {
+    res.status(500).json(err);
+  }
 });
 
 router.get("*", async (req, res) => {
