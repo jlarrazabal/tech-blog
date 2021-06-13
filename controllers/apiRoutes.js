@@ -147,7 +147,7 @@ router.post("/logout", (req, res) => {
   if (req.session.loggedIn) {
     req.session.destroy(() => {
       res.status(200);
-      res.render("home");
+      res.redirect("/");
     });
   } else {
     res.redirect("/");
