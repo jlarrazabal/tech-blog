@@ -1,6 +1,9 @@
 {{#each posts.posts as |post|}}
 {{> postDetails}}
 {{/each}}
-{{#each comments as |comment|}}
+{{#each comments.comments as |comment|}}
 {{> comment}}
+{{/each}}
+{{#each posts.posts as |post|}}
+<a class="btn btn-lg btn-primary" href="/post/new-comment/{{id}}">Add Comment</a>
 {{/each}}

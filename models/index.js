@@ -22,6 +22,16 @@ Post.hasMany(Comment, {
   OnUpdate: "CASCADE"
 });
 
+Comment.belongsTo(User, {
+  foreingKey:"user_id",
+});
+
+User.hasMany(Comment, {
+  foreingKey: "user_id",
+  onDelete: "CASCADE",
+  OnUpdate: "CASCADE"
+});
+
 module.exports = {
   User,
   Post,

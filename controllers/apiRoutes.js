@@ -163,7 +163,23 @@ router.post("/new-post", auth ,async (req, res) => {
       post_date: newDate,
       user_id: req.session.user_id
     });
-    res.render("dashboard", {loggedIn: req.session.loggedIn, user_id: req.session.user_id});
+    res.redirect("/dashboard");
+  } catch(err) {
+    res.status(500).json(err);
+  }
+});
+
+//Create Comment
+router.post("/post/new-comment/:id", auth ,async (req, res) => {
+  try {
+    let newDate = new Date();
+    const newPost = await Comment.create({
+      comment_content: req.body.commentContent,
+      comment_date: newDate,
+      post_id: req.params.id,
+      user_id: req.session.user_id
+    });
+    res.redirect(`/post/${req.params.id}`);
   } catch(err) {
     res.status(500).json(err);
   }
