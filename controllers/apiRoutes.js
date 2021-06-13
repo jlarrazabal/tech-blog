@@ -143,11 +143,10 @@ router.post("/login", async (req, res) => {
 });
 
 //User Logout - Troubleshoot Issues
-router.post("/logout", (req, res) => {
+router.post("/logout", async (req, res) => {
   if (req.session.loggedIn) {
     req.session.destroy(() => {
-      res.status(200);
-      res.redirect("/");
+    res.status(200).redirect("/").end();
     });
   } else {
     res.redirect("/");
