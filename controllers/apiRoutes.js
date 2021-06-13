@@ -146,7 +146,8 @@ router.post("/login", async (req, res) => {
 router.post("/logout", (req, res) => {
   if (req.session.loggedIn) {
     req.session.destroy(() => {
-      res.redirect("/");
+      res.status(200);
+      res.render("home");
     });
   } else {
     res.redirect("/");

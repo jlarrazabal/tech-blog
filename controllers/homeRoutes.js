@@ -1,7 +1,8 @@
 const router = require("express").Router();
 const {
   User,
-  Post
+  Post,
+  Comment
 } = require("../models");
 const auth = require("../utils/auth");
 
@@ -183,44 +184,40 @@ router.get("/post/:id", async (req, res) => {
       const posts = postData.map(post => post.get({
         plain: true
       }));
-      // const commentsData = await Comment.findAll({where: {post_id: req.params.id}});
-      if(req.session.loggedIn) {
-        res.render("post", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
+      const commentsData = await Comment.findAll({
+        include: [{
+          model: User,
+          attributes: [
+            "id",
+            "username"
+          ]
+        }],
+        where: {
+          post_id: req.params.id
+        }
+      });
+      // res.send({commentsData});
+      if(!commentsData.length) {
+        if(req.session.loggedIn) {
+          res.render("post", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
+        } else {
+          res.render("post", {posts: {posts}});
+        }
       } else {
-        res.render("post", {posts: {posts}});
+        const comments = commentsData.map(comment => comment.get({
+          plain: true
+        }));
+        if(req.session.loggedIn) {
+          res.render("post", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}, comments: {comments}});
+        } else {
+          res.render("post", {posts: {posts}, comments: {comments}});
+        }
       }
-      // if(!commentsData.length) {
-      //   if(req.session.loggedIn) {
-      //     res.render("post", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
-      //   } else {
-      //     res.render("post", {posts: {posts}});
-      //   }
-      // } else {
-      //   const comments = commentsData.map(comment => comment.get({
-      //     plain: true
-      //   }));
-      //   if(req.session.loggedIn) {
-      //     res.render("post", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}, comments: {comments}});
-      //   } else {
-      //     res.render("post", {posts: {posts}, comments: {comments}});
-      //   }
-      // }
     }
   } catch(err) {
     res.status(500).json(err);
   }
 });
-
-// router.get("/post/:id", async (req, res) => {
-//   try {
-//     const commentsData = await Comment.findAll();
-//     res.send({
-//       commentsData
-//     });
-//   } catch (err) {
-//     res.status(500).json(err);
-//   }
-// });
 
 router.get("*", async (req, res) => {
   res.redirect("/");
