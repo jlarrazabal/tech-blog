@@ -196,7 +196,6 @@ router.get("/post/:id", async (req, res) => {
           post_id: req.params.id
         }
       });
-      // res.send({commentsData});
       if(!commentsData.length) {
         if(req.session.loggedIn) {
           res.render("post", {loggedIn: req.session.loggedIn, user_id: req.session.user_id, posts: {posts}});
